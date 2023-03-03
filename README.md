@@ -4,6 +4,8 @@
 
 Submission to the OpenAI stack hack. Demo available at [youcademy.dev](https://youcademy.dev).
 
+Video demo: https://www.youtube.com/watch?v=tCjxlZquboY.
+
 Made by Rick Wierenga, Pedro Nieto, Socrates Osorio and Tjalling van der Schaar.
 
 ## Running locally
