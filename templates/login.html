@@ -1,0 +1,44 @@
+{% extends "template.html" %} {% block content %}
+<div class="row">
+  <div class="col-md-5 big-image-left">
+    <div class="left-block">
+      <h1 class="app-title"><span class="colored">You</span>Cademy</h1>
+
+      <h1>Log in</h1>
+      <form class="row g-3" action="{{ url_for('login') }}" method="post">
+        <div class="col-12">
+          <label for="inputEmail" class="form-label">Email</label>
+          <input
+            type="email"
+            class="form-control"
+            id="inputEmail"
+            name="email"
+          />
+        </div>
+        <div class="col-12">
+          <label for="inputPassword" class="form-label">Password</label>
+          <input
+            type="password"
+            class="form-control"
+            id="inputPassword"
+            name="password"
+          />
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-primary">Sign In</button>
+        </div>
+        <a href="{{ url_for('register') }}" class="text-muted caption"
+          ><small>Or register instead</small></a
+        >
+      </form>
+    </div>
+  </div>
+  <div class="col-md-7">
+    <img
+      class="big-image"
+      src="{{ url_for( 'static', filename='side.jpeg') }}"
+      alt=""
+    />
+  </div>
+  {% endblock %}
+</div>

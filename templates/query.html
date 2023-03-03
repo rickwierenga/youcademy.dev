@@ -1,0 +1,26 @@
+{% extends "template.html" %} {% block content %}
+<a href="/">
+  <h1 class="app-title center-title"><span class="colored">You</span>Cademy</h1>
+</a>
+
+<main class="container">
+  <h1>AI animation video tool</h1>
+
+  <form action="/" method="POST">
+    <div class="mb-3">
+      <label for="query" class="form-label">I want to learn about</label>
+      <input
+        type="text"
+        class="form-control"
+        id="query"
+        name="query"
+        placeholder="The United States of America, biology, gradient descent, ..."
+      />
+    </div>
+
+    <button id="submit-btn" type="submit" class="btn btn-primary">
+      Submit
+    </button>
+  </form>
+</main>
+{% endblock %}

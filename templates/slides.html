@@ -1,0 +1,457 @@
+{% extends "template.html" %} {% block head %}
+<style>
+  .card-body {
+    padding: 40px;
+  }
+
+  #deck {
+    padding: 20px;
+    border: 1px solid rgb(49, 49, 49);
+    border-radius: 3px;
+    min-height: 500px;
+  }
+
+  #loading-screen {
+    min-height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  #loading-screen h1 {
+    font-size: 4em;
+  }
+  #loading-screen h2 {
+    font-size: 3em;
+  }
+  #loading-screen .btn {
+    margin: 30px 0;
+    font-size: 2em;
+  }
+
+  .slide li {
+    font-size: 1.5em;
+    padding: 10px 0;
+  }
+
+  .container {
+    max-width: 1000px;
+  }
+
+  .buttons {
+    margin-top: 30px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  #myTab {
+    margin-top: 30px;
+  }
+
+  #myTabContent {
+    margin-top: 20px;
+  }
+
+  #transcript {
+    text-align: justify;
+  }
+
+  #deck {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  #deck img {
+    object-fit: cover;
+  }
+
+  #deck img {
+    max-width: 100%;
+  }
+
+  .slide-number {
+    margin-top: auto;
+    margin-bottom: 0;
+  }
+</style>
+{% endblock %} {% block content %}
+<a href="/">
+  <h1 class="app-title center-title"><span class="colored">You</span>Cademy</h1>
+</a>
+
+<main class="container">
+  <div class="card">
+    <div class="card-body">
+      <div id="loading-screen">
+        <div id="loading-content">
+          <div class="spinner-container text-center">
+            <div class="spinner"></div>
+          </div>
+
+          <h1>Your personalized presentation is being prepared.</h1>
+          <h2>This should take no longer than a minute.</h2>
+        </div>
+
+        <div id="ready-content" style="display: none">
+          <h1>Your presentation is ready!</h1>
+          <h2>Click the button below to start.</h2>
+          <button id="start-presentation" class="btn btn-primary">Start</button>
+        </div>
+      </div>
+
+      <div id="presentation" style="display: none">
+        <div id="deck"></div>
+
+        <div class="buttons text-center">
+          <button id="prev" class="btn btn-primary" onclick="prevSlide()">
+            <i class="bi bi-arrow-left"></i>
+            Previous
+          </button>
+          <button id="pause-resume" class="btn btn-primary">
+            <span id="pause-item" style="display: none">
+              <i class="bi bi-pause-fill"></i>
+              Pause
+            </span>
+
+            <span id="play-item">
+              <i class="bi bi-play-fill"></i>
+              Play
+            </span>
+          </button>
+          <button id="next" class="btn btn-primary" onclick="nextSlide()">
+            Next
+            <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link active"
+              id="follow-up"
+              data-bs-toggle="tab"
+              data-bs-target="#follow-up-pane"
+              type="button"
+              role="tab"
+              aria-controls="follow-up-pane"
+              aria-selected="true"
+            >
+              Follow-up
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link"
+              id="transcript-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#transcript-tab-pane"
+              type="button"
+              role="tab"
+              aria-controls="transcript-tab-pane"
+              aria-selected="false"
+            >
+              Transcript
+            </button>
+          </li>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+          <div
+            class="tab-pane fade show active"
+            id="follow-up-pane"
+            role="tabpanel"
+            aria-labelledby="follow-up"
+            tabindex="0"
+          >
+            <div id="follow-up-form">
+              <h5>Do you have any follow-up questions?</h5>
+              <div class="row">
+                <div class="col-10">
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="follow-up-query"
+                    name="follow-up-query"
+                  />
+                </div>
+                <div class="col-2">
+                  <button id="follow-up-btn" class="w-100 btn btn-primary">
+                    Submit
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="spinner-container" id="follow-up-spinner">
+              <div class="spinner spinner-sm"></div>
+            </div>
+          </div>
+          <div
+            class="tab-pane fade"
+            id="transcript-tab-pane"
+            role="tabpanel"
+            aria-labelledby="transcript-tab"
+            tabindex="0"
+          >
+            <p id="transcript"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %} {% block scripts %}
+<script>
+  const qid = "{{ qid }}"; // jinja template thing
+</script>
+<script>
+  var slides = [];
+  var currentSlide = undefined;
+
+  var autoPlaying = true;
+
+  function showSlide(slideIdx) {
+    currentSlide = slideIdx;
+    var deck = document.getElementById("deck");
+    deck.innerHTML = "";
+
+    const slide = slides[slideIdx];
+    const slideDiv = document.createElement("div");
+    slideDiv.classList.add("slide");
+    slideDiv.innerHTML = `
+                  <h1>${slide.title}</h1>
+                  <ul>
+              `;
+    const keyPoints = slide.key_points;
+    for (let j = 0; j < keyPoints.length; j++) {
+      const keyPoint = keyPoints[j];
+      const keyPointEl = document.createElement("li");
+      keyPointEl.classList.add("key-point");
+      keyPointEl.innerHTML = `${keyPoint}`;
+      slideDiv.appendChild(keyPointEl);
+    }
+    slideDiv.innerHTML += "</ul>";
+    deck.appendChild(slideDiv);
+
+    document.getElementById("transcript").innerText = slide.text;
+
+    if (slide.image_url !== null && slide.image_url !== undefined) {
+      const img = document.createElement("img");
+      img.src = slide.image_url;
+      deck.appendChild(img);
+    }
+
+    const slideNumber = document.createElement("p");
+    slideNumber.classList.add("slide-number");
+    slideNumber.innerText = `${currentSlide + 1} / ${slides.length}`;
+    deck.appendChild(slideNumber);
+
+    fixNextPrevButtons();
+    hideFollowUpLoadingUI();
+
+    // disable the follow up tab if this slide is a follow up
+    if (slide.is_follow_up) {
+      // show the transcript tab
+      new bootstrap.Tab(document.getElementById("transcript-tab")).show();
+
+      // disable the follow up tab
+      document.getElementById("follow-up").style.display = "none";
+    } else {
+      // enable the follow up tab
+      document.getElementById("follow-up").style.display = "block";
+    }
+
+    playAudio(slide.audio);
+  }
+
+  function fixNextPrevButtons() {
+    document.getElementById("next").disabled =
+      currentSlide === slides.length - 1;
+    document.getElementById("prev").disabled = currentSlide === 0;
+  }
+
+  function fixAudioButton() {
+    if (audio === undefined || audio === null || audio.paused) {
+      document.getElementById("pause-item").style.display = "none";
+      document.getElementById("play-item").style.display = "block";
+    } else {
+      document.getElementById("pause-item").style.display = "block";
+      document.getElementById("play-item").style.display = "none";
+    }
+  }
+
+  function showFollowUpLoadingUI() {
+    document.getElementById("next").disabled = true;
+    document.getElementById("prev").disabled = true;
+    document.getElementById("pause-resume").disabled = true;
+
+    document.getElementById("follow-up-spinner").style.display = "block";
+    document.getElementById("follow-up-form").style.display = "none";
+  }
+
+  function hideFollowUpLoadingUI() {
+    fixAudioButton();
+    fixNextPrevButtons();
+    document.getElementById("pause-resume").disabled = false;
+
+    document.getElementById("follow-up-spinner").style.display = "none";
+    document.getElementById("follow-up-form").style.display = "block";
+  }
+
+  function pauseAudio() {
+    audio.pause();
+    fixAudioButton();
+  }
+
+  function resumeAudio() {
+    audio.play();
+    fixAudioButton();
+  }
+
+  const playPauseBtn = document.getElementById("pause-resume");
+  playPauseBtn.addEventListener("click", () => {
+    if (audio !== undefined && audio !== null) {
+      if (!audio.paused) {
+        pauseAudio();
+      } else {
+        resumeAudio();
+      }
+    }
+  });
+
+  function nextSlide() {
+    autoPlaying = true;
+
+    if (currentSlide < slides.length - 1) {
+      showSlide(currentSlide + 1);
+    }
+  }
+
+  function prevSlide() {
+    if (currentSlide > 0) {
+      showSlide(currentSlide - 1);
+    }
+  }
+
+  const startPresentationBtn = document.getElementById("start-presentation");
+  startPresentationBtn.addEventListener("click", () => {
+    startPresentation();
+  });
+
+  function showPresentationReady() {
+    document.getElementById("ready-content").style.display = "block";
+    document.getElementById("loading-content").style.display = "none";
+  }
+
+  function startPresentation() {
+    document.getElementById("loading-screen").style.display = "none";
+    document.getElementById("ready-content").style.display = "none";
+    document.getElementById("loading-content").style.display = "none";
+
+    document.getElementById("presentation").style.display = "block";
+
+    showSlide(currentSlide);
+  }
+
+  function fetchData(loadUI = true) {
+    fetch(`/data/${qid}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === "pending") {
+          console.log("presentation not ready, trying again in 500 ms");
+          setTimeout(() => {
+            fetchData(loadUI);
+          }, 500);
+        } else if (data.status === "ready") {
+          console.log("presentation ready ");
+          slides = data.slides;
+
+          // Currently this method is used at the start to load all data, and when a question is asked.
+          // We abuse this fact by going to the next slide if the presentation is already loaded.
+          if (loadUI) {
+            currentSlide = 0;
+            showPresentationReady();
+          } else {
+            nextSlide();
+          }
+        } else if (data.status === "error") {
+          console.log("error");
+          alert("Error: " + data.error);
+        } else {
+          console.log("unknown status");
+          alert("An unknown error ocurred while making the presentation");
+        }
+      });
+  }
+
+  var audio;
+
+  function playAudio() {
+    console.log("play audio", currentSlide);
+
+    // Stop audio if it is playing.
+    if (audio !== undefined && audio !== null) {
+      audio.pause();
+      audio = undefined;
+    }
+
+    audio = new Audio(`/query/${qid}/${currentSlide}/audio`);
+    audio.play();
+
+    fixAudioButton();
+
+    // If auto playing is enabled, play the next slide after the audio is done
+    audio.addEventListener("ended", () => {
+      fixAudioButton();
+
+      if (autoPlaying) {
+        nextSlide();
+      }
+    });
+  }
+
+  fetchData();
+
+  const followUpBtn = document.getElementById("follow-up-btn");
+  followUpBtn.addEventListener("click", () => {
+    askFollowUp();
+  });
+
+  function askFollowUp() {
+    const followUpQuery = document.getElementById("follow-up-query").value;
+    if (followUpQuery === "") {
+      return;
+    }
+
+    showFollowUpLoadingUI();
+
+    fetch(`/query/${qid}/${currentSlide}/follow-up`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        question: followUpQuery,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === "success") {
+          console.log("follow up success");
+          // fetch data will also go to the next slide, nice hack.
+          fetchData(false);
+          console.log("fetching data for follow up question");
+        } else if (data.status === "error") {
+          console.log("error");
+          alert("Error: " + data.error);
+        } else {
+          console.log("unknown status");
+          alert("An unknown error ocurred while making the presentation");
+        }
+      });
+
+    console.log("ooading");
+
+    document.getElementById("follow-up-query").value = "";
+  }
+</script>
+{% endblock %}

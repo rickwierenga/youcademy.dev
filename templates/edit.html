@@ -1,0 +1,75 @@
+{% extends "template.html" %} {% block content %}
+<a href="/">
+    <h1 class="app-title center-title"><span class="colored">You</span>Cademy</h1>
+  </a>
+
+<main class="container" style="max-width: 500px;">
+    <h1>Edit account</h1>
+
+    <form class="row g-3" action="{{ url_for('edit_account') }}" method="post">
+        <div class="col-6">
+        <label for="inputFirstName" class="form-label">First name</label>
+          <input
+            type="text"
+            class="form-control"
+            id="inputFirstName"
+            name="first-name"
+            value="{{ current_user.first_name }}"
+          />
+        </div>
+        <div class="col-6">
+          <label for="inputLastName" class="form-label">Last name</label>
+          <input
+            type="text"
+            class="form-control"
+            id="inputLastName"
+            name="last-name"
+            value="{{ current_user.last_name }}"
+          />
+        </div>
+        <div class="col-12">
+          <label for="inputProf" class="form-label">Professional Status</label>
+          <input
+            type="text"
+            class="form-control"
+            id="inputProf"
+            name="prof"
+            value="{{ current_user.prof }}"
+          />
+        </div>
+        <div class="col-12">
+          <label for="inputLanguage" class="form-label">Language</label>
+          <select class="form-select" id="inputLanguage" name="language">
+            <option {% if current_user.language_id == "en" %} selected {% endif %} value="en">English</option>
+            <option {% if current_user.language_id == "nl" %} selected {% endif %}  value="nl">Dutch</option>
+            <option {% if current_user.language_id == "es" %} selected {% endif %} value="es">Spanish</option>
+            <option {% if current_user.language_id == "fr" %} selected {% endif %} value="fr">French</option>
+            <option {% if current_user.language_id == "de" %} selected {% endif %} value="de">German</option>
+            <option {% if current_user.language_id == "it" %} selected {% endif %} value="it">Italian</option>
+            <option {% if current_user.language_id == "pt" %} selected {% endif %} value="pt">Portuguese</option>
+            <option {% if current_user.language_id == "ru" %} selected {% endif %} value="ru">Russian</option>
+            <option {% if current_user.language_id == "ja" %} selected {% endif %} value="ja">Japanese</option>
+            <option {% if current_user.language_id == "ko" %} selected {% endif %} value="ko">Korean</option>
+            <option {% if current_user.language_id == "zh" %} selected {% endif %} value="zh">Chinese</option>
+            <option {% if current_user.language_id == "ar" %} selected {% endif %} value="ar">Arabic</option>
+            <option {% if current_user.language_id == "hi" %} selected {% endif %} value="hi">Hindi</option>
+            <option {% if current_user.language_id == "bn" %} selected {% endif %} value="bn">Bengali</option>
+            <option {% if current_user.language_id == "pa" %} selected {% endif %} value="pa">Punjabi</option>
+            <option {% if current_user.language_id == "te" %} selected {% endif %} value="te">Telugu</option>
+            <option {% if current_user.language_id == "tr" %} selected {% endif %} value="tr">Turkish</option>
+            <option {% if current_user.language_id == "id" %} selected {% endif %} value="id">Indonesian</option>
+            <option {% if current_user.language_id == "vi" %} selected {% endif %} value="vi">Vietnamese</option>
+            <option {% if current_user.language_id == "th" %} selected {% endif %} value="th">Thai</option>
+            <option {% if current_user.language_id == "ms" %} selected {% endif %} value="ms">Malay</option>
+            <option {% if current_user.language_id == "ur" %} selected {% endif %} value="ur">Urdu</option>
+            <option {% if current_user.language_id == "fa" %} selected {% endif %} value="fa">Persian</option>
+            <option {% if current_user.language_id == "mr" %} selected {% endif %} value="mr">Marathi</option>
+            <option {% if current_user.language_id == "da" %} selected {% endif %} value="da">Danish</option>
+          </select>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-primary">Edit account info</button>
+        </div>
+    </form>
+</main>
+{% endblock %}

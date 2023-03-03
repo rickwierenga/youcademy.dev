@@ -1,0 +1,36 @@
+{% extends "template.html" %} {% block content %}
+<div class="row">
+  <div class="col-md-5 big-image-left">
+    <div class="left-block">
+      <h1 class="app-title"><span class="colored">You</span>Cademy</h1>
+
+      <h1>
+        We are ready to teach you <span class="accent">everything</span> on the
+        internet
+      </h1>
+      <h1>Exactly how <span class="accent">you</span> need it explained</h1>
+      <div class="buttons mt-5">
+        <a
+          href="{{ url_for('login') }}"
+          id="login"
+          class="btn btn-primary py-2 px-4 me-3"
+          >Login</a
+        >
+        <a
+          href="{{ url_for('register') }}"
+          id="register"
+          class="btn btn-secondary py-2 px-4"
+          >Register</a
+        >
+      </div>
+    </div>
+  </div>
+  <div class="col-md-7">
+    <img
+      class="big-image"
+      src="{{ url_for( 'static', filename='side.jpeg') }}"
+      alt=""
+    />
+  </div>
+</div>
+{% endblock %}

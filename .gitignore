@@ -1,0 +1,6 @@
+instance/db.sqlite
+instance/db.sqlite3
+instance/audio/*.mp3
+*.DS_Store
+*.swo
+*.swp

@@ -1,0 +1,109 @@
+.big-image {
+  width: 100%;
+  height: 100vh;
+  object-fit: cover;
+}
+
+.left-block {
+  width: 550px;
+  max-width: 550px;
+  margin: auto;
+}
+
+.left-block h1 {
+  font-size: 50px;
+}
+
+.left-block a {
+  font-size: 20px;
+}
+
+.big-image-left {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.accent {
+  color: #e99b5c;
+  font-weight: 600;
+  font-size: 1.2em;
+}
+
+.left-block .app-title {
+  position: absolute;
+  top: 40px;
+  font-size: 30px;
+}
+
+a {
+  text-decoration: none;
+}
+
+.app-title.center-title {
+  color: black;
+  text-align: center;
+  top: 40px;
+  font-size: 40px;
+  font-weight: 800;
+  margin: 5vh 0;
+}
+
+span.colored {
+  color: #e99b5c;
+}
+
+.btn.btn-primary {
+  background-color: #3a629f;
+  border: 1px solid #3a629f;
+  border-radius: 10px;
+}
+
+.btn.btn-primary:hover {
+  background-color: #2d4a75;
+  border: 1px solid #2d4a75;
+}
+
+.nav-link {
+  color: #2d4a75;
+}
+
+.nav-link:hover {
+  color: #2d4a75;
+}
+
+/* https://www.w3schools.com/howto/howto_css_loader.asp */
+.spinner {
+  display: inline-block;
+  border: 16px solid #f3f3f3; /* Light grey */
+  border-top: 16px solid #3a629f; /* Blue */
+  border-radius: 50%;
+  width: 100px;
+  height: 100px;
+  animation: spin 1.42s linear infinite;
+}
+
+.spinner-sm {
+  width: 50px;
+  height: 50px;
+  border: 8px solid #f3f3f3; /* Light grey */
+  border-top: 8px solid #3a629f; /* Blue */
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner-container {
+  text-align: center;
+}
+
+.account-link {
+  color: black;
+  font-size: 1.2em;
+}
