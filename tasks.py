@@ -1,9 +1,11 @@
 # ~ lib.py
 
 import json
+import multiprocessing
 import os
-import openai
+import time
 
+import openai
 import redis
 import rq
 
@@ -16,7 +18,6 @@ q = rq.Queue(connection=conn)
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 def qid2qck(qid): return f"prompt-{qid}"
-
 
 def lang_id2natural_lang_lang(lid):
   return {
@@ -50,6 +51,60 @@ def lang_id2natural_lang_lang(lid):
 def get_retry():
   return rq.Retry(max=10, interval=[1] * 7 + [3, 5, 10])
 
+
+def generate_clip(text, ip, i, qid, language_id) -> dict: # instance path, index in slides, audio id, query id
+  fn = get_audio_clip_path(ip, qid, i)
+  language_code = {
+    "en": "en-US",
+    "de": "de-DE",
+    "fr": "fr-FR",
+    "es": "es-ES",
+    "nl": "nl-NL",
+    "it": "it-IT",
+    "pt": "pt-PT",
+    "ru": "ru-RU",
+    "ja": "ja-JP",
+    "ko": "ko-KR",
+    "zh": "zh-CN",
+    "ar": "ar-AE",
+    "hi": "hi-IN",
+    "bn": "bn-IN",
+    "pa": "pa-IN",
+    "te": "te-IN",
+    "tr": "tr-TR",
+    "id": "id-ID",
+    "vi": "vi-VN",
+    "th": "th-TH",
+    "ms": "ms-MY",
+    "ur": "ur-PK",
+    "fa": "fa-IR",
+    "mr": "mr-IN",
+    "da": "da-DK",
+  }.get(language_id, "en-US")
+  synthesize_text_with_audio_profile(text, output=fn, language_code=language_code)
+  return dict()
+
+def generate_image(query) -> dict:
+  image_url = get_images(query)[0]
+  return dict(url=image_url)
+
+
+MAX_TRIES = 5
+def execute(task):
+  print("exeucting task", task)
+  try_i = 0
+  while try_i < MAX_TRIES:
+    try:
+      func = task.get("func")
+      ret = func(**task.get("kwargs"))
+      return dict(**ret, status="ready")
+    except Exception as e:
+      print("Encountered exception", task, e)
+    try_i += 1
+    time.sleep(1.5 ** try_i) # exponential delay
+  return dict(status="failed")
+
+
 def generate_presentation(qid, query_text, user_prof, instance_path, language_id):
   language_name = lang_id2natural_lang_lang(language_id)  
   query = f'Write content for a slide deck about {query_text} for a listener who is a {user_prof}. Write the result in {language_name}. Return a JSON list with data about each slide. The list consists of ' \
@@ -57,8 +112,7 @@ def generate_presentation(qid, query_text, user_prof, instance_path, language_id
               'that is spoken by the presenter, a "title" key to name the slide with low verbose, a "key_points" key which will contain a list of 3 key points (a couple of ' \
               'words) to be shown on the slide, and an "image_query" key that will contain the name of an image to illustrate each point with low verbose'
   response = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[
-    {"role": "user",
-    "content": query},
+    {"role": "user", "content": query},
   ])
 
   qck = qid2qck(qid)
@@ -75,8 +129,28 @@ def generate_presentation(qid, query_text, user_prof, instance_path, language_id
     slides[i]["audio_status"] = "pending"
     slides[i]["image_status"] = "pending"
     slides[i]["is_follow_up"] = False
-  generate_clips(q=q, ip=instance_path, texts=[slide["text"] for slide in slides], qid=qid, language_id=language_id)
-  generate_images(q=q, queries=[slide["image_query"] for slide in slides], qid=qid)
+
+  tasks = []
+  for i, text in enumerate([slide["text"] for slide in slides]):
+    tasks.append(dict(func=generate_clip, kwargs=dict(text=text, i=i, qid=qid, language_id=language_id, ip=instance_path)))
+  for image_query in [slide["image_query"] for slide in slides]:
+    tasks.append(dict(func=generate_image, kwargs=dict(query=image_query)))
+
+  with multiprocessing.Pool(len(tasks)) as p:
+    results = p.map(execute, tasks)
+
+  print("results", results)
+
+  assert len(results) == len(slides) * 2
+  audio_rets = results[:len(slides)]
+  image_rets = results[len(slides):len(slides)*2]
+
+  for i, audio_ret in enumerate(audio_rets):
+    slides[i]["audio_status"] = audio_ret.get("status")
+  for i, image_ret in enumerate(image_rets):
+    slides[i]["image_url"] = image_ret.get("url")
+    slides[i]["image_status"] = image_ret.get("status")
+
   print("made slides", slides)
 
   presentation["slides"] = slides
@@ -126,79 +200,3 @@ def answer_follow_up_question(qid, slide_idx, question, instance_path, language_
 
 def get_audio_clip_path(ip, qid, i):
   return os.path.join(ip, "audio", f"{qid}-{i}.mp3")
-
-def generate_clip(text, ip, i, qid, language_id): # instance path, index in slides, audio id, query id
-  try:
-    fn = get_audio_clip_path(ip, qid, i)
-    language_code = {
-      "en": "en-US",
-      "de": "de-DE",
-      "fr": "fr-FR",
-      "es": "es-ES",
-      "nl": "nl-NL",
-      "it": "it-IT",
-      "pt": "pt-PT",
-      "ru": "ru-RU",
-      "ja": "ja-JP",
-      "ko": "ko-KR",
-      "zh": "zh-CN",
-      "ar": "ar-AE",
-      "hi": "hi-IN",
-      "bn": "bn-IN",
-      "pa": "pa-IN",
-      "te": "te-IN",
-      "tr": "tr-TR",
-      "id": "id-ID",
-      "vi": "vi-VN",
-      "th": "th-TH",
-      "ms": "ms-MY",
-      "ur": "ur-PK",
-      "fa": "fa-IR",
-      "mr": "mr-IN",
-      "da": "da-DK",
-    }.get(language_id, "en-US")
-    synthesize_text_with_audio_profile(text, output=fn, language_code=language_code)
-
-    status = "ready"
-  except Exception as e:
-    print("error generating audio clip: ", e)
-    status = "failed"
-
-  # load the data from redis, insert the audio clip fn, and save again
-  pck = qid2qck(qid)
-  presentation = r.get(pck)
-  presentation = json.loads(presentation)
-  presentation["slides"][i]["audio_status"] = status
-  r.set(pck, json.dumps(presentation))
-  print("updated slides with audio: ", presentation)
-
-
-def generate_clips(q, ip, texts, qid, language_id):
-  """ Generate audio clips for each slide in a background task. Returns a list of tuples for job_id and clip id, corresponding to the order of the slides. """
-
-  for i, text in enumerate(texts):
-    q.enqueue_call(generate_clip, args=(text, ip, i, qid, language_id), result_ttl=None, retry=get_retry())
-
-
-def generate_image(query, i, qid):
-  pck = qid2qck(qid)
-
-  try:
-    image_url = get_images(query)[0]
-    status = "ready"
-  except Exception as e:
-    image_url = None
-    status = "failed"
-    print("error ocurred when getting images: ", e)
-
-  presentation = r.get(pck)
-  presentation = json.loads(presentation)
-  presentation["slides"][i]["image_status"] = status
-  presentation["slides"][i]["image_url"] = image_url
-  r.set(pck, json.dumps(presentation))
-  print("updated slides with image: ", presentation)
-
-
-def generate_images(q, queries, qid):
-  for i, query in enumerate(queries):
-    q.enqueue_call(generate_image, args=(query, i, qid), result_ttl=None, retry=get_retry())
